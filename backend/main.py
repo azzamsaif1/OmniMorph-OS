@@ -13,8 +13,10 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from backend.api.routes.agents import router as agents_router
 from backend.api.routes.enterprise import router as enterprise_router
+from backend.api.routes.evaluation import router as evaluation_router
 from backend.api.routes.memory import router as memory_router
 from backend.api.routes.sensing import router as sensing_router
+from backend.api.routes.training import router as training_router
 from backend.api.websocket.guidance import router as guidance_ws_router
 from backend.config import settings
 from backend.utils.logger import log
@@ -52,6 +54,8 @@ app.include_router(sensing_router, prefix="/api/sensing", tags=["sensing"])
 app.include_router(agents_router, prefix="/api/agents", tags=["agents"])
 app.include_router(memory_router, prefix="/api/memory", tags=["memory"])
 app.include_router(enterprise_router, prefix="/api/enterprise", tags=["enterprise"])
+app.include_router(evaluation_router, prefix="/api/evaluation", tags=["evaluation"])
+app.include_router(training_router, prefix="/api/training", tags=["training"])
 
 # WebSocket routers
 app.include_router(guidance_ws_router, prefix="/ws", tags=["websocket"])

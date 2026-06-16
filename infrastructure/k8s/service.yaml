@@ -1,0 +1,131 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ucsk-backend-service
+  labels:
+    app: ucsk
+    component: backend
+spec:
+  type: ClusterIP
+  selector:
+    app: ucsk
+    component: backend
+  ports:
+    - name: http
+      port: 8000
+      targetPort: 8000
+      protocol: TCP
+    - name: ws
+      port: 8001
+      targetPort: 8000
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ucsk-frontend-service
+  labels:
+    app: ucsk
+    component: frontend
+spec:
+  type: LoadBalancer
+  selector:
+    app: ucsk
+    component: frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qdrant-service
+  labels:
+    app: ucsk
+    component: qdrant
+spec:
+  type: ClusterIP
+  selector:
+    app: ucsk
+    component: qdrant
+  ports:
+    - name: http
+      port: 6333
+      targetPort: 6333
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: neo4j-service
+  labels:
+    app: ucsk
+    component: neo4j
+spec:
+  type: ClusterIP
+  selector:
+    app: ucsk
+    component: neo4j
+  ports:
+    - name: http
+      port: 7474
+      targetPort: 7474
+      protocol: TCP
+    - name: bolt
+      port: 7687
+      targetPort: 7687
+      protocol: TCP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-service
+  labels:
+    app: ucsk
+    component: redis
+spec:
+  type: ClusterIP
+  selector:
+    app: ucsk
+    component: redis
+  ports:
+    - name: redis
+      port: 6379
+      targetPort: 6379
+      protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ucsk-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/websocket-services: "ucsk-backend-service"
+spec:
+  rules:
+    - host: ucsk.example.com
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: ucsk-backend-service
+                port:
+                  number: 8000
+          - path: /ws
+            pathType: Prefix
+            backend:
+              service:
+                name: ucsk-backend-service
+                port:
+                  number: 8000
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ucsk-frontend-service
+                port:
+                  number: 80
