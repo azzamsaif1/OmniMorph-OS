@@ -1,0 +1,53 @@
+# UCSK Backend Dependencies
+# ========================
+
+# Web Framework
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+python-multipart==0.0.20
+websockets==14.2
+
+# AI / ML
+google-genai==1.14.0
+torch==2.6.0
+transformers==4.48.1
+sentence-transformers==3.4.1
+scikit-learn==1.6.1
+numpy==2.2.2
+
+# Sensing
+mediapipe==0.10.21
+opencv-python-headless==4.11.0.86
+openai-whisper==20240930
+sounddevice==0.5.1
+pynput==1.7.7
+
+# Databases
+qdrant-client==1.13.3
+neo4j==5.28.1
+sqlalchemy[asyncio]==2.0.37
+asyncpg==0.30.0
+psycopg2-binary==2.9.10
+alembic==1.14.1
+
+# Agent Orchestration
+langgraph==0.2.74
+langchain==0.3.19
+langchain-google-genai==2.0.11
+redis==5.2.1
+
+# Utilities
+pydantic==2.10.6
+pydantic-settings==2.7.1
+python-dotenv==1.0.1
+httpx==0.28.1
+orjson==3.10.15
+structlog==24.4.0
+
+# P2P / Networking
+aiortc==1.10.1
+
+# Testing
+pytest==8.3.4
+pytest-asyncio==0.25.3
+httpx==0.28.1
