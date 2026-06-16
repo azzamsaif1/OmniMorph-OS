@@ -101,7 +101,6 @@ kind: Ingress
 metadata:
   name: ucsk-ingress
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/websocket-services: "ucsk-backend-service"
 spec:
   rules:

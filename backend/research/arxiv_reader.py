@@ -62,19 +62,21 @@ class ArxivReader:
         self._max_results = max_results
 
     async def search(
-        self, query: str, max_results: int | None = None
+        self, query: str, max_results: int | None = None, raw_query: bool = False
     ) -> list[PaperSummary]:
         """Search arXiv for papers matching a query.
 
         Args:
             query: Free-text search query.
             max_results: Override default result count.
+            raw_query: If True, pass query directly without wrapping in all:.
 
         Returns:
             List of PaperSummary objects.
         """
+        search_query = query if raw_query else f"all:{query}"
         params = {
-            "search_query": f"all:{query}",
+            "search_query": search_query,
             "start": 0,
             "max_results": max_results or self._max_results,
             "sortBy": "submittedDate",
@@ -95,7 +97,7 @@ class ArxivReader:
         """Fetch the latest papers from configured categories."""
         cats = categories or self._categories
         cat_query = " OR ".join(f"cat:{c}" for c in cats)
-        return await self.search(cat_query)
+        return await self.search(cat_query, raw_query=True)
 
     def _parse_atom_feed(self, xml_text: str) -> list[PaperSummary]:
         """Minimal XML parsing for arXiv Atom feed."""

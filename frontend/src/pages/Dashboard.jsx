@@ -83,21 +83,39 @@ export default function Dashboard() {
         </h2>
         {agentStatus ? (
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "0.5rem" }}>
-            {(agentStatus.agents || []).map((agent) => (
+            {(agentStatus.supervisors || []).map((name) => (
               <div
-                key={agent.name}
+                key={name}
                 style={{
                   background: "#313244",
                   padding: "0.5rem",
                   borderRadius: "4px",
-                  borderLeft: `3px solid ${agent.status === "active" ? "#a6e3a1" : "#f38ba8"}`,
+                  borderLeft: "3px solid #a6e3a1",
                 }}
               >
                 <div style={{ fontSize: "0.8rem", fontWeight: 600 }}>
-                  {agent.name}
+                  {name}
                 </div>
                 <div style={{ fontSize: "0.7rem", color: "#a6adc8" }}>
-                  {agent.role}
+                  supervisor
+                </div>
+              </div>
+            ))}
+            {(agentStatus.specialists || []).map((name) => (
+              <div
+                key={name}
+                style={{
+                  background: "#313244",
+                  padding: "0.5rem",
+                  borderRadius: "4px",
+                  borderLeft: "3px solid #89b4fa",
+                }}
+              >
+                <div style={{ fontSize: "0.8rem", fontWeight: 600 }}>
+                  {name}
+                </div>
+                <div style={{ fontSize: "0.7rem", color: "#a6adc8" }}>
+                  specialist
                 </div>
               </div>
             ))}

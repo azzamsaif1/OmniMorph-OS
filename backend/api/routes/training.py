@@ -184,7 +184,7 @@ async def generate_scenario(req: ScenarioRequest) -> dict[str, Any]:
 
     # If focus skills specified, try to find a better match
     if req.focus_skills:
-        for t in _SCENARIO_TEMPLATES[domain]:
+        for t in templates:
             overlap = set(t["skills"]) & set(req.focus_skills)
             if overlap:
                 scenario = t

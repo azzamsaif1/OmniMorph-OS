@@ -22,6 +22,11 @@ export function useWebSocket(url, { onMessage, autoConnect = true } = {}) {
   const wsRef = useRef(null);
   const reconnectTimer = useRef(null);
   const shouldReconnect = useRef(autoConnect);
+  const onMessageRef = useRef(onMessage);
+
+  useEffect(() => {
+    onMessageRef.current = onMessage;
+  });
 
   const connect = useCallback(() => {
     if (wsRef.current?.readyState === WebSocket.OPEN) return;
@@ -37,7 +42,7 @@ export function useWebSocket(url, { onMessage, autoConnect = true } = {}) {
       try {
         const data = JSON.parse(evt.data);
         setLastMessage(data);
-        if (onMessage) onMessage(data);
+        if (onMessageRef.current) onMessageRef.current(data);
       } catch {
         /* ignore malformed frames */
       }
@@ -53,7 +58,7 @@ export function useWebSocket(url, { onMessage, autoConnect = true } = {}) {
     ws.onerror = () => {
       ws.close();
     };
-  }, [url, onMessage]);
+  }, [url]);
 
   const disconnect = useCallback(() => {
     shouldReconnect.current = false;
