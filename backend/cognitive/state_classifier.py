@@ -71,8 +71,15 @@ class StateClassifier:
         best_idx = int(np.argmax(proba))
         best_label = str(class_names[best_idx])
 
+        valid_states = {s.value for s in CognitiveState}
+        if best_label not in valid_states:
+            log.warning("classifier.unknown_label", label=best_label)
+            predicted = mental_state.state
+        else:
+            predicted = CognitiveState(best_label)
+
         result = ClassificationResult(
-            predicted_state=CognitiveState(best_label),
+            predicted_state=predicted,
             confidence=float(proba[best_idx]),
             probabilities=prob_map,
         )

@@ -14,67 +14,67 @@ export function useSensing() {
   const [mentalState, setMentalState] = useState(null);
   const [directive, setDirective] = useState(null);
   const wsRef = useRef(null);
+  const reconnectTimer = useRef(null);
 
   useEffect(() => {
-    const ws = new WebSocket(WS_URL);
-    wsRef.current = ws;
+    function createSocket() {
+      const ws = new WebSocket(WS_URL);
+      wsRef.current = ws;
 
-    ws.onmessage = (evt) => {
-      try {
-        const msg = JSON.parse(evt.data);
-        if (msg.type === "state") setMentalState(msg);
-        if (msg.type === "directive") setDirective(msg);
-      } catch {
-        /* ignore */
+      ws.onmessage = (evt) => {
+        try {
+          const msg = JSON.parse(evt.data);
+          if (msg.type === "state") setMentalState(msg);
+          if (msg.type === "directive") setDirective(msg);
+        } catch {
+          /* ignore malformed frames */
+        }
+      };
+
+      ws.onclose = () => {
+        reconnectTimer.current = setTimeout(createSocket, 2000);
+      };
+
+      ws.onerror = () => {
+        ws.close();
+      };
+
+      return ws;
+    }
+
+    createSocket();
+
+    // All event handlers read from wsRef.current so they survive reconnects
+    const send = (payload) => {
+      const ws = wsRef.current;
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify(payload));
       }
     };
 
-    ws.onclose = () => {
-      // Reconnect after 2 s
-      setTimeout(() => {
-        wsRef.current = new WebSocket(WS_URL);
-      }, 2000);
-    };
-
-    // -- Keyboard listener --
     const onKey = (e) => {
-      ws.readyState === WebSocket.OPEN &&
-        ws.send(
-          JSON.stringify({
-            type: "behavior",
-            event_type: "keystroke",
-            key: e.key,
-          })
-        );
+      send({ type: "behavior", event_type: "keystroke", key: e.key });
     };
 
-    // -- Mouse listener --
     let lastMove = 0;
     const onMouse = (e) => {
       const now = Date.now();
-      if (now - lastMove < 100) return; // throttle to 10 Hz
+      if (now - lastMove < 100) return;
       lastMove = now;
-      ws.readyState === WebSocket.OPEN &&
-        ws.send(
-          JSON.stringify({
-            type: "behavior",
-            event_type: "mouse_move",
-            x: e.clientX,
-            y: e.clientY,
-          })
-        );
+      send({
+        type: "behavior",
+        event_type: "mouse_move",
+        x: e.clientX,
+        y: e.clientY,
+      });
     };
 
-    // -- Scroll listener --
     const onScroll = () => {
-      ws.readyState === WebSocket.OPEN &&
-        ws.send(JSON.stringify({ type: "behavior", event_type: "scroll" }));
+      send({ type: "behavior", event_type: "scroll" });
     };
 
-    // -- Click listener --
     const onClick = () => {
-      ws.readyState === WebSocket.OPEN &&
-        ws.send(JSON.stringify({ type: "behavior", event_type: "click" }));
+      send({ type: "behavior", event_type: "click" });
     };
 
     window.addEventListener("keydown", onKey);
@@ -87,7 +87,8 @@ export function useSensing() {
       window.removeEventListener("mousemove", onMouse);
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("click", onClick);
-      ws.close();
+      clearTimeout(reconnectTimer.current);
+      wsRef.current?.close();
     };
   }, []);
 

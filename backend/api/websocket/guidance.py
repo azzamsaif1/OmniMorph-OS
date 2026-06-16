@@ -19,10 +19,6 @@ from backend.utils.logger import log
 
 router = APIRouter()
 
-_engine = AdaptationEngine()
-_fuser = MentalStateFuser()
-_behavior = BehaviorAnalyzer()
-
 
 @router.websocket("/guidance")
 async def guidance_stream(ws: WebSocket) -> None:
@@ -40,6 +36,11 @@ async def guidance_stream(ws: WebSocket) -> None:
     await ws.accept()
     log.info("ws.guidance.connected")
 
+    # Per-connection instances to isolate user state
+    behavior = BehaviorAnalyzer()
+    fuser = MentalStateFuser()
+    engine = AdaptationEngine()
+
     try:
         while True:
             raw = await ws.receive_text()
@@ -49,20 +50,20 @@ async def guidance_stream(ws: WebSocket) -> None:
             if msg_type == "behavior":
                 etype = msg.get("event_type", "")
                 if etype == "keystroke":
-                    _behavior.record_keystroke(msg.get("key", ""))
+                    behavior.record_keystroke(msg.get("key", ""))
                 elif etype == "mouse_move":
-                    _behavior.record_mouse_move(
+                    behavior.record_mouse_move(
                         msg.get("x", 0), msg.get("y", 0)
                     )
                 elif etype == "scroll":
-                    _behavior.record_scroll()
+                    behavior.record_scroll()
                 elif etype == "click":
-                    _behavior.record_click()
+                    behavior.record_click()
 
                 # Fuse and send updated state
-                bm = _behavior.compute_metrics()
-                ms = _fuser.fuse(behavior=bm)
-                plan = _engine.decide(ms.state, ms.confidence)
+                bm = behavior.compute_metrics()
+                ms = fuser.fuse(behavior=bm)
+                plan = engine.decide(ms.state, ms.confidence)
 
                 await ws.send_json(
                     {

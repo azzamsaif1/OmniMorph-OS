@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 router = APIRouter()
 
@@ -14,7 +14,7 @@ class StoreEventRequest(BaseModel):
     user_id: str
     event_type: str
     description: str = ""
-    payload: dict[str, Any] = {}
+    payload: dict[str, Any] = Field(default_factory=dict)
 
 
 class SearchRequest(BaseModel):

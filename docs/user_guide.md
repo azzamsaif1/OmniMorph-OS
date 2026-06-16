@@ -142,7 +142,7 @@ Create a `.env` file in the project root for local development.
 | Issue | Solution |
 |-------|---------|
 | Camera not detected | Check browser permissions; ensure HTTPS or localhost |
-| Whisper loading slow | First run downloads the model (~140 MB for "base") |
+| Whisper loads slowly | First run downloads the model (~140 MB for "base") |
 | Neo4j connection refused | Ensure `docker compose up neo4j` is running |
 | Frontend WebSocket error | Check that backend is running on port 8000 |
 | Skill Diff empty | Set `UCSK_GEMINI_API_KEY` environment variable |

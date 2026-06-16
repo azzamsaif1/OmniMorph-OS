@@ -10,8 +10,8 @@ import { useAdaptation } from "./hooks/useAdaptation.js";
  * between Visual / Audio / Haptic / Mixed / Zero UI modes.
  */
 export default function App() {
-  const { mentalState, sendBehavior } = useSensing();
-  const { directive, uiMode } = useAdaptation(mentalState);
+  const { mentalState, directive: wsDirective, sendBehavior } = useSensing();
+  const { directive, uiMode } = useAdaptation(mentalState, wsDirective);
 
   return (
     <div

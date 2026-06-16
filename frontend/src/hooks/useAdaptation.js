@@ -1,21 +1,20 @@
 /**
- * useAdaptation — consumes the mental-state stream and returns
- * the current UI mode + adaptation directive with hysteresis.
+ * useAdaptation — consumes the mental-state stream and backend directives,
+ * returns the current UI mode with hysteresis to prevent flicker.
  */
 
 import { useEffect, useRef, useState } from "react";
 
 const MODE_COOLDOWN_MS = 2000; // Minimum time between mode switches
 
-export function useAdaptation(mentalState) {
+export function useAdaptation(mentalState, backendDirective) {
   const [uiMode, setUiMode] = useState("visual");
-  const [directive, setDirective] = useState(null);
   const lastSwitch = useRef(0);
 
+  // Derive mode from mental state
   useEffect(() => {
     if (!mentalState) return;
 
-    // Derive mode from state if no directive has arrived yet
     const stateToMode = {
       focused: "visual",
       flow: "zero",
@@ -34,17 +33,17 @@ export function useAdaptation(mentalState) {
     }
   }, [mentalState, uiMode]);
 
-  // Also accept explicit directives from the WebSocket
+  // Accept explicit directives from the backend WebSocket
   useEffect(() => {
-    if (!directive) return;
-    if (directive.ui_mode && directive.ui_mode !== uiMode) {
+    if (!backendDirective) return;
+    if (backendDirective.ui_mode && backendDirective.ui_mode !== uiMode) {
       const now = Date.now();
       if (now - lastSwitch.current > MODE_COOLDOWN_MS) {
         lastSwitch.current = now;
-        setUiMode(directive.ui_mode);
+        setUiMode(backendDirective.ui_mode);
       }
     }
-  }, [directive, uiMode]);
+  }, [backendDirective, uiMode]);
 
-  return { uiMode, directive, setDirective };
+  return { uiMode, directive: backendDirective };
 }
