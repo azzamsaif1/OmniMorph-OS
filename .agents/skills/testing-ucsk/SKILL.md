@@ -124,8 +124,11 @@ Mode switching has a 2000ms cooldown (hysteresis) to prevent flickering.
 - **Settings page:** The `code_style` learned preference renders as `[object Object]` because it's a nested object (indentation, quote_style, line_length, docstring_style). Needs `JSON.stringify()` or explicit field rendering.
 - Without Docker Compose stack (Qdrant, Neo4j, PostgreSQL, Redis), memory layer endpoints return connection errors but API structure is still verified.
 - Face/voice analysis requires camera/microphone hardware + heavy ML deps (torch, whisper). Behavior-only testing path works without these.
-- The frontend WebSocket connects to `ws://localhost:8000/ws/guidance` — if backend isn't running, the frontend will show default "idle" state and auto-reconnect every 2s.
+- The frontend WebSocket connects to `ws://localhost:8000/ws/guidance` — if backend isn't running, the frontend will show default "idle" state and auto-reconnect with exponential backoff (2s → 4s → 8s → 30s max).
 - The mental state in the NavBar may change from "idle" to "distracted" during testing as the app detects mouse/keyboard behavior. This is expected behavior, not a bug.
+- **Vite proxy error suppression:** The `vite.config.js` overrides `proxy.emit` to intercept ECONNREFUSED errors before they reach Vite's default logger. A simpler `proxy.on("error", ...)` approach does NOT work because Vite registers its own error handler that always logs. For WebSocket proxy errors specifically, the third arg is a raw `net.Socket` (not `ServerResponse`), so `res.writeHead` doesn't exist — must use `res.destroy()` instead.
+- **React StrictMode:** Both `useSensing` and `useWebSocket` hooks use a `shouldReconnect` ref. The ref MUST be reset to `true` at the start of the effect body because StrictMode double-invokes effects (cleanup sets it to false, re-run needs it true again).
+- **start.sh:** Use `./start.sh` to start both services together. It waits for backend health check before starting frontend, and fails fast if backend doesn't start within 30s.
 
 ## Devin Secrets Needed
 
