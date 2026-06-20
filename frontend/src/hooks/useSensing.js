@@ -19,8 +19,11 @@ export function useSensing() {
   const wsRef = useRef(null);
   const reconnectTimer = useRef(null);
   const reconnectDelay = useRef(INITIAL_RECONNECT_MS);
+  const shouldReconnect = useRef(true);
 
   useEffect(() => {
+    shouldReconnect.current = true;
+
     function createSocket() {
       const ws = new WebSocket(WS_URL);
       wsRef.current = ws;
@@ -40,11 +43,13 @@ export function useSensing() {
       };
 
       ws.onclose = () => {
-        reconnectTimer.current = setTimeout(createSocket, reconnectDelay.current);
-        reconnectDelay.current = Math.min(
-          reconnectDelay.current * 2,
-          MAX_RECONNECT_MS
-        );
+        if (shouldReconnect.current) {
+          reconnectTimer.current = setTimeout(createSocket, reconnectDelay.current);
+          reconnectDelay.current = Math.min(
+            reconnectDelay.current * 2,
+            MAX_RECONNECT_MS
+          );
+        }
       };
 
       ws.onerror = () => {
@@ -95,6 +100,7 @@ export function useSensing() {
     window.addEventListener("click", onClick);
 
     return () => {
+      shouldReconnect.current = false;
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("mousemove", onMouse);
       window.removeEventListener("scroll", onScroll);

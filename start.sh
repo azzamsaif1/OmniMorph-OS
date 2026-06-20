@@ -22,13 +22,21 @@ BACKEND_PID=$!
 
 # Wait for backend to be ready
 echo "Waiting for backend..."
+BACKEND_READY=0
 for i in $(seq 1 30); do
   if curl -s http://localhost:8000/health > /dev/null 2>&1; then
     echo "Backend ready."
+    BACKEND_READY=1
     break
   fi
   sleep 1
 done
+
+if [ "$BACKEND_READY" -ne 1 ]; then
+  echo "Backend failed to become healthy within 30 seconds." >&2
+  kill $BACKEND_PID 2>/dev/null || true
+  exit 1
+fi
 
 # Start frontend
 echo "Starting frontend on :5173..."
