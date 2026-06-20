@@ -189,8 +189,12 @@ async def stripe_webhook(request: Request) -> dict[str, str]:
                         log.info("billing.webhook.cancelled", user_id=uid)
                         break
 
+        except stripe.error.SignatureVerificationError as exc:
+            log.warning("billing.webhook_sig_invalid", error=str(exc))
+            raise HTTPException(status_code=400, detail="Invalid signature")
         except Exception as exc:
             log.warning("billing.webhook_error", error=str(exc))
+            raise HTTPException(status_code=400, detail="Webhook processing failed")
 
     return {"status": "received"}
 
