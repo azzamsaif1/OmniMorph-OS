@@ -47,12 +47,15 @@ class SecurityAgent(BaseAgent):
         ]
 
         code = state.context.get("active_code", "")
-        findings: list[dict[str, str]] = []
+        all_findings: list[dict[str, str]] = []
+        static_findings: list[dict[str, str]] = []
 
         if code:
-            findings.extend(self._static_scan(code))
+            static_findings = self._static_scan(code)
+            all_findings.extend(static_findings)
 
         for task in tasks:
+            task_findings: list[dict[str, str]] = list(static_findings)
             task_code = task.get("code", code)
             if task_code:
                 gemini_result = await gemini_analyze_code(
@@ -61,11 +64,13 @@ class SecurityAgent(BaseAgent):
                     language=task.get("language", "python"),
                 )
                 for issue in gemini_result.get("issues", []):
-                    findings.append({
+                    finding = {
                         "severity": issue.get("severity", "medium"),
                         "message": issue.get("message", ""),
                         "source": "gemini",
-                    })
+                    }
+                    task_findings.append(finding)
+                    all_findings.append(finding)
 
             constitutional_check = _constitution.validate_action({
                 "type": task.get("action_type", "code_gen"),
@@ -74,20 +79,22 @@ class SecurityAgent(BaseAgent):
             })
             if not constitutional_check.permitted:
                 for v in constitutional_check.violations:
-                    findings.append({"severity": "critical", "message": v, "source": "constitution"})
+                    finding = {"severity": "critical", "message": v, "source": "constitution"}
+                    task_findings.append(finding)
+                    all_findings.append(finding)
 
             result = (
                 f"Security scan for '{task.get('description', 'N/A')}' — "
-                f"{len(findings)} finding(s)"
+                f"{len(task_findings)} finding(s)"
             )
             task["status"] = "done"
             task["result"] = result
-            task["findings"] = findings
+            task["findings"] = task_findings
             self._emit(state, f"[Security] {result}")
             state.completed_tasks.append(task)
 
-        state.context["security_findings"] = findings
-        log.debug("security_agent.processed", findings=len(findings))
+        state.context["security_findings"] = all_findings
+        log.debug("security_agent.processed", findings=len(all_findings))
         return state
 
     def _static_scan(self, code: str) -> list[dict[str, str]]:

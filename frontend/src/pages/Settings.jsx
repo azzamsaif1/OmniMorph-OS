@@ -129,7 +129,11 @@ export default function Settings() {
               }}>
                 <span style={{ color: "#a6adc8" }}>{key.replace(/_/g, " ")}</span>
                 <span style={{ color: "#89b4fa" }}>
-                  {typeof val === "number" ? val.toFixed(2) : String(val)}
+                  {typeof val === "object" && val !== null
+                    ? JSON.stringify(val)
+                    : typeof val === "number"
+                      ? val.toFixed(2)
+                      : String(val)}
                 </span>
               </div>
             ))}

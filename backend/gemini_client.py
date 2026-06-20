@@ -12,6 +12,17 @@ from typing import Any
 from backend.utils.logger import log
 
 _GEMINI_MODEL = "gemini-2.0-flash"
+_client = None
+
+
+def _get_client():
+    """Return a cached genai.Client singleton."""
+    global _client
+    if _client is None:
+        from google import genai
+        api_key = os.environ.get("GOOGLE_API_KEY", "")
+        _client = genai.Client(api_key=api_key)
+    return _client
 
 
 async def gemini_generate(
@@ -32,13 +43,13 @@ async def gemini_generate(
     try:
         from google import genai
 
-        client = genai.Client(api_key=api_key)
+        client = _get_client()
         config = genai.types.GenerateContentConfig(
             system_instruction=system_instruction or None,
             temperature=temperature,
             max_output_tokens=max_tokens,
         )
-        response = client.models.generate_content(
+        response = await client.aio.models.generate_content(
             model=_GEMINI_MODEL,
             contents=prompt,
             config=config,

@@ -85,10 +85,10 @@ async def get_dashboard(team_id: str) -> dict[str, Any]:
         cognitive_diversity=round(diversity, 3),
         top_skills=sorted(unique_strengths),
         metrics={
-            "productivity": round(avg_prod * 100, 1) or 78,
-            "creativity": round(diversity * 80, 1) or 65,
+            "productivity": round(avg_prod * 100, 1),
+            "creativity": round(diversity * 80, 1),
             "cohesion": 82.0,
-            "focus_index": round(avg_focus * 100, 1) or 71,
+            "focus_index": round(avg_focus * 100, 1),
         },
     ).model_dump()
 

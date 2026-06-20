@@ -17,14 +17,29 @@ from backend.utils.logger import log
 
 router = APIRouter()
 
-_event_store = EventStore(dsn=settings.postgres_dsn)
-_vector_store = VectorStore(
-    host=settings.qdrant_host,
-    port=settings.qdrant_port,
-    collection=settings.qdrant_collection,
-    dim=settings.qdrant_embedding_dim,
-)
-_graph_store = GraphStore(uri=settings.neo4j_uri)
+try:
+    _event_store = EventStore(dsn=settings.postgres_dsn)
+except Exception as _exc:
+    log.warning("memory.event_store_init_failed", error=str(_exc))
+    _event_store = None
+
+try:
+    _vector_store = VectorStore(
+        host=settings.qdrant_host,
+        port=settings.qdrant_port,
+        collection=settings.qdrant_collection,
+        dim=settings.qdrant_embedding_dim,
+    )
+except Exception as _exc:
+    log.warning("memory.vector_store_init_failed", error=str(_exc))
+    _vector_store = None
+
+try:
+    _graph_store = GraphStore(uri=settings.neo4j_uri)
+except Exception as _exc:
+    log.warning("memory.graph_store_init_failed", error=str(_exc))
+    _graph_store = None
+
 _skill_gen = SkillDiffGenerator()
 _federated = FederatedNetwork()
 
