@@ -22,6 +22,8 @@ export function useSensing() {
   const shouldReconnect = useRef(true);
 
   useEffect(() => {
+    shouldReconnect.current = true;
+
     function createSocket() {
       const ws = new WebSocket(WS_URL);
       wsRef.current = ws;
