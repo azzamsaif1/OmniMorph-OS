@@ -6,8 +6,25 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      "/api": "http://localhost:8000",
-      "/ws": { target: "ws://localhost:8000", ws: true },
+      "/api": {
+        target: "http://localhost:8000",
+        changeOrigin: true,
+      },
+      "/ws": {
+        target: "ws://localhost:8000",
+        ws: true,
+        // Suppress ECONNREFUSED errors when backend is not running
+        configure: (proxy) => {
+          proxy.on("error", (err, _req, res) => {
+            if (err.code === "ECONNREFUSED") {
+              if (res && res.writeHead) {
+                res.writeHead(503, { "Content-Type": "application/json" });
+                res.end(JSON.stringify({ error: "Backend unavailable" }));
+              }
+            }
+          });
+        },
+      },
     },
   },
 });

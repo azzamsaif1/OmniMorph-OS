@@ -7,7 +7,8 @@
 
 import { useEffect, useRef, useState, useCallback } from "react";
 
-const RECONNECT_DELAY = 2000;
+const INITIAL_RECONNECT_DELAY = 2000;
+const MAX_RECONNECT_DELAY = 30000;
 
 /**
  * @param {string} url - WebSocket endpoint URL
@@ -21,6 +22,7 @@ export function useWebSocket(url, { onMessage, autoConnect = true } = {}) {
   const [lastMessage, setLastMessage] = useState(null);
   const wsRef = useRef(null);
   const reconnectTimer = useRef(null);
+  const reconnectDelay = useRef(INITIAL_RECONNECT_DELAY);
   const shouldReconnect = useRef(autoConnect);
   const onMessageRef = useRef(onMessage);
 
@@ -36,6 +38,7 @@ export function useWebSocket(url, { onMessage, autoConnect = true } = {}) {
 
     ws.onopen = () => {
       setIsConnected(true);
+      reconnectDelay.current = INITIAL_RECONNECT_DELAY;
     };
 
     ws.onmessage = (evt) => {
@@ -51,7 +54,11 @@ export function useWebSocket(url, { onMessage, autoConnect = true } = {}) {
     ws.onclose = () => {
       setIsConnected(false);
       if (shouldReconnect.current) {
-        reconnectTimer.current = setTimeout(connect, RECONNECT_DELAY);
+        reconnectTimer.current = setTimeout(connect, reconnectDelay.current);
+        reconnectDelay.current = Math.min(
+          reconnectDelay.current * 2,
+          MAX_RECONNECT_DELAY
+        );
       }
     };
 
