@@ -10,16 +10,24 @@ const WS_URL =
   window.location.host +
   "/ws/guidance";
 
+const INITIAL_RECONNECT_MS = 2000;
+const MAX_RECONNECT_MS = 30000;
+
 export function useSensing() {
   const [mentalState, setMentalState] = useState(null);
   const [directive, setDirective] = useState(null);
   const wsRef = useRef(null);
   const reconnectTimer = useRef(null);
+  const reconnectDelay = useRef(INITIAL_RECONNECT_MS);
 
   useEffect(() => {
     function createSocket() {
       const ws = new WebSocket(WS_URL);
       wsRef.current = ws;
+
+      ws.onopen = () => {
+        reconnectDelay.current = INITIAL_RECONNECT_MS;
+      };
 
       ws.onmessage = (evt) => {
         try {
@@ -32,7 +40,11 @@ export function useSensing() {
       };
 
       ws.onclose = () => {
-        reconnectTimer.current = setTimeout(createSocket, 2000);
+        reconnectTimer.current = setTimeout(createSocket, reconnectDelay.current);
+        reconnectDelay.current = Math.min(
+          reconnectDelay.current * 2,
+          MAX_RECONNECT_MS
+        );
       };
 
       ws.onerror = () => {
