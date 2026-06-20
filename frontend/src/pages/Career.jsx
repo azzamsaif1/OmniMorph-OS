@@ -1,20 +1,28 @@
 /**
- * Career — Professional Evolution Simulator Page (Feature 19).
+ * Career — Professional Evolution Simulator (Feature 19).
  *
- * Simulates career paths based on measured capabilities and
- * suggests optimal educational/professional opportunities.
+ * Simulates potential career paths based on capability profile,
+ * provides AI-powered career guidance via Gemini.
  */
 
 import { useState, useEffect } from "react";
 
+const sectionStyle = {
+  background: "#1e1e2e",
+  borderRadius: "8px",
+  padding: "1.5rem",
+  marginBottom: "1.5rem",
+  border: "1px solid #313244",
+};
+
 export default function Career() {
-  const [careerData, setCareerData] = useState(null);
+  const [career, setCareer] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/enterprise/career/default")
       .then((r) => r.json())
-      .then(setCareerData)
+      .then(setCareer)
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -22,107 +30,104 @@ export default function Career() {
   return (
     <div style={{ padding: "2rem", fontFamily: "system-ui, sans-serif", color: "#cdd6f4" }}>
       <h1 style={{ fontSize: "1.5rem", marginBottom: "1.5rem" }}>
-        Career Evolution Simulator
+        Career Simulator
       </h1>
 
       {loading ? (
-        <p style={{ color: "#a6adc8" }}>Loading career simulation...</p>
-      ) : (
+        <p style={{ color: "#a6adc8" }}>Analyzing your career trajectory...</p>
+      ) : career ? (
         <>
-          {/* Current Position */}
-          <section
-            style={{
-              background: "#1e1e2e",
-              borderRadius: "8px",
-              padding: "1.5rem",
-              marginBottom: "1.5rem",
-              border: "1px solid #313244",
-            }}
-          >
-            <h2 style={{ fontSize: "1.1rem", marginBottom: "1rem" }}>
-              Current Position Assessment
-            </h2>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
-              <div style={{ background: "#313244", padding: "1rem", borderRadius: "6px" }}>
-                <div style={{ fontSize: "0.75rem", color: "#a6adc8" }}>Estimated Level</div>
-                <div style={{ fontSize: "1.2rem", fontWeight: 700, color: "#a6e3a1" }}>
-                  {careerData?.current_level || "Mid-Senior"}
-                </div>
+          <section style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
+            gap: "1rem",
+            marginBottom: "1.5rem",
+          }}>
+            <div style={{
+              background: "#313244",
+              padding: "1rem",
+              borderRadius: "6px",
+              textAlign: "center",
+            }}>
+              <div style={{ fontSize: "0.75rem", color: "#a6adc8" }}>Current Level</div>
+              <div style={{ fontSize: "1.3rem", fontWeight: 700, color: "#89b4fa" }}>
+                {career.current_level}
               </div>
-              <div style={{ background: "#313244", padding: "1rem", borderRadius: "6px" }}>
-                <div style={{ fontSize: "0.75rem", color: "#a6adc8" }}>Strongest Domain</div>
-                <div style={{ fontSize: "1.2rem", fontWeight: 700, color: "#89b4fa" }}>
-                  {careerData?.strongest_domain || "Backend Systems"}
-                </div>
+            </div>
+            <div style={{
+              background: "#313244",
+              padding: "1rem",
+              borderRadius: "6px",
+              textAlign: "center",
+            }}>
+              <div style={{ fontSize: "0.75rem", color: "#a6adc8" }}>Strongest Domain</div>
+              <div style={{ fontSize: "1.3rem", fontWeight: 700, color: "#a6e3a1" }}>
+                {career.strongest_domain}
               </div>
-              <div style={{ background: "#313244", padding: "1rem", borderRadius: "6px" }}>
-                <div style={{ fontSize: "0.75rem", color: "#a6adc8" }}>Growth Velocity</div>
-                <div style={{ fontSize: "1.2rem", fontWeight: 700, color: "#f9e2af" }}>
-                  {careerData?.growth_velocity || "+12%/quarter"}
-                </div>
+            </div>
+            <div style={{
+              background: "#313244",
+              padding: "1rem",
+              borderRadius: "6px",
+              textAlign: "center",
+            }}>
+              <div style={{ fontSize: "0.75rem", color: "#a6adc8" }}>Growth Velocity</div>
+              <div style={{ fontSize: "1.3rem", fontWeight: 700, color: "#f9e2af" }}>
+                {career.growth_velocity}
               </div>
             </div>
           </section>
 
-          {/* Recommended Paths */}
-          <section
-            style={{
-              background: "#1e1e2e",
-              borderRadius: "8px",
-              padding: "1.5rem",
-              border: "1px solid #313244",
-            }}
-          >
-            <h2 style={{ fontSize: "1.1rem", marginBottom: "1rem" }}>
-              Recommended Career Paths
-            </h2>
-            <div style={{ display: "grid", gap: "1rem" }}>
-              {(careerData?.paths || defaultPaths).map((path, i) => (
-                <div
-                  key={i}
-                  style={{
+          {/* Career Paths */}
+          {career.paths?.length > 0 && (
+            <section style={sectionStyle}>
+              <h2 style={{ fontSize: "1.1rem", marginBottom: "1rem" }}>
+                Predicted Career Paths
+              </h2>
+              <div style={{ display: "grid", gap: "0.75rem" }}>
+                {career.paths.map((path, i) => (
+                  <div key={i} style={{
                     background: "#313244",
                     padding: "1rem",
                     borderRadius: "6px",
-                    borderLeft: `3px solid ${["#89b4fa", "#a6e3a1", "#f9e2af"][i % 3]}`,
-                  }}
-                >
-                  <div style={{ fontWeight: 600, marginBottom: "0.25rem" }}>
-                    {path.title}
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}>
+                    <div>
+                      <div style={{ fontWeight: 600, color: "#cba6f7" }}>
+                        {typeof path === "string" ? path : path.title || JSON.stringify(path)}
+                      </div>
+                    </div>
                   </div>
-                  <div style={{ fontSize: "0.85rem", color: "#a6adc8", marginBottom: "0.5rem" }}>
-                    {path.description}
-                  </div>
-                  <div style={{ fontSize: "0.75rem", color: "#585b70" }}>
-                    Timeline: {path.timeline} • Fit Score: {path.fit_score}%
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Recommendations */}
+          {career.recommendations?.length > 0 && (
+            <section style={sectionStyle}>
+              <h2 style={{ fontSize: "1.1rem", marginBottom: "1rem" }}>
+                Recommendations
+              </h2>
+              <ul style={{ paddingLeft: "1.5rem" }}>
+                {career.recommendations.map((rec, i) => (
+                  <li key={i} style={{
+                    fontSize: "0.85rem",
+                    color: "#a6adc8",
+                    padding: "0.25rem 0",
+                  }}>
+                    {typeof rec === "string" ? rec : JSON.stringify(rec)}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
         </>
+      ) : (
+        <p style={{ color: "#f38ba8" }}>Failed to load career data</p>
       )}
     </div>
   );
 }
-
-const defaultPaths = [
-  {
-    title: "Staff Engineer — Distributed Systems",
-    description: "Deep specialization in large-scale distributed architectures. Focus on consensus, sharding, and fault tolerance.",
-    timeline: "18-24 months",
-    fit_score: 87,
-  },
-  {
-    title: "Engineering Manager — Platform",
-    description: "Transition to people leadership while maintaining technical depth in developer tooling and infrastructure.",
-    timeline: "12-18 months",
-    fit_score: 72,
-  },
-  {
-    title: "Principal Engineer — Full Stack",
-    description: "Broad technical leadership across frontend and backend, driving architectural decisions org-wide.",
-    timeline: "24-36 months",
-    fit_score: 65,
-  },
-];

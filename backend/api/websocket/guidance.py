@@ -2,7 +2,7 @@
 
 The frontend connects to ``/ws/guidance`` and receives a continuous
 stream of adaptation directives, spoken guidance text, and UI-mode
-switch commands.
+switch commands. Uses Gemini for contextual guidance.
 """
 
 from __future__ import annotations
@@ -13,6 +13,7 @@ from typing import Any
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 
 from backend.cognitive.adaptation_engine import AdaptationEngine
+from backend.gemini_client import gemini_guidance
 from backend.sensing.behavior_analyzer import BehaviorAnalyzer
 from backend.sensing.mental_state import MentalStateFuser
 from backend.utils.logger import log
@@ -36,10 +37,11 @@ async def guidance_stream(ws: WebSocket) -> None:
     await ws.accept()
     log.info("ws.guidance.connected")
 
-    # Per-connection instances to isolate user state
     behavior = BehaviorAnalyzer()
     fuser = MentalStateFuser()
     engine = AdaptationEngine()
+    work_context: dict[str, Any] = {}
+    interaction_count = 0
 
     try:
         while True:
@@ -60,7 +62,6 @@ async def guidance_stream(ws: WebSocket) -> None:
                 elif etype == "click":
                     behavior.record_click()
 
-                # Fuse and send updated state
                 bm = behavior.compute_metrics()
                 ms = fuser.fuse(behavior=bm)
                 plan = engine.decide(ms.state, ms.confidence)
@@ -87,16 +88,32 @@ async def guidance_stream(ws: WebSocket) -> None:
                     }
                 )
 
+                interaction_count += 1
+                if interaction_count % 50 == 0 and ms.state.value in ("fatigued", "frustrated"):
+                    guidance_text = await gemini_guidance(
+                        mental_state=ms.state.value,
+                        work_context=work_context,
+                    )
+                    await ws.send_json(
+                        {"type": "guidance", "text": guidance_text}
+                    )
+
             elif msg_type == "query":
                 text = msg.get("text", "")
-                # Placeholder: real impl calls Gemini for contextual guidance
-                await ws.send_json(
-                    {
-                        "type": "guidance",
-                        "text": f"Received your query: '{text}'. "
-                        f"Generating response...",
-                    }
+                bm = behavior.compute_metrics()
+                ms = fuser.fuse(behavior=bm)
+
+                guidance_text = await gemini_guidance(
+                    mental_state=ms.state.value,
+                    work_context=work_context,
+                    query=text,
                 )
+                await ws.send_json(
+                    {"type": "guidance", "text": guidance_text}
+                )
+
+            elif msg_type == "context":
+                work_context.update(msg.get("data", {}))
 
     except WebSocketDisconnect:
         log.info("ws.guidance.disconnected")
