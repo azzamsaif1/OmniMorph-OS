@@ -163,7 +163,13 @@ async def stripe_webhook(request: Request) -> dict[str, str]:
     if endpoint_secret:
         try:
             import stripe
+        except ImportError:
+            log.warning("billing.webhook_stripe_unavailable")
+            raise HTTPException(
+                status_code=500, detail="Stripe SDK not installed"
+            )
 
+        try:
             stripe.api_key = os.environ.get("STRIPE_SECRET_KEY", "")
             event = stripe.Webhook.construct_event(body, sig, endpoint_secret)
             event_type = event["type"]
