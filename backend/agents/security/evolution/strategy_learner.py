@@ -221,6 +221,10 @@ class StrategyLearner:
                     "reason": f"Success rate {strategy.success_rate:.0%} below threshold",
                 })
 
+        # Actually remove retired strategies
+        for retired in updates["retired_strategies"]:
+            self.strategies.pop(retired["strategy_id"], None)
+
         # Check if we can synthesize a new strategy
         new_strategy = self._try_synthesize_strategy(experience)
         if new_strategy:
@@ -322,6 +326,7 @@ class StrategyLearner:
         top_half = ranked[:len(ranked) // 2 + 1]
         bottom_half = ranked[len(ranked) // 2 + 1:]
 
+        to_retire = []
         for strategy in bottom_half:
             if strategy.times_used >= 5 and strategy.success_rate < self._retirement_threshold:
                 results["retirements"].append({
@@ -329,7 +334,11 @@ class StrategyLearner:
                     "name": strategy.name,
                     "success_rate": strategy.success_rate,
                 })
+                to_retire.append(strategy.id)
                 continue
+
+        for sid in to_retire:
+            self.strategies.pop(sid, None)
 
             # Mutate: borrow a phase from a top performer
             if top_half:

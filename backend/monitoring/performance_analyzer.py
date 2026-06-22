@@ -37,6 +37,8 @@ class PerformanceIssue:
     deviation: float
     recommended_fix: str
     auto_fixable: bool = False
+    resolved: bool = False
+    resolved_at: float = 0.0
     detected_at: float = field(default_factory=time.time)
 
 
@@ -263,9 +265,32 @@ class PerformanceAnalyzer:
             "total_metrics_tracked": len(self.metrics),
         }
 
+    def resolve_issue(self, issue_id: str, reason: str = "") -> bool:
+        """Mark an issue as resolved."""
+        for issue in self.issues:
+            if issue.id == issue_id and not issue.resolved:
+                issue.resolved = True
+                issue.resolved_at = time.time()
+                return True
+        return False
+
+    def auto_resolve_stale_issues(self, max_age_seconds: float = 3600) -> int:
+        """Auto-resolve issues older than max_age_seconds."""
+        now = time.time()
+        resolved_count = 0
+        for issue in self.issues:
+            if not issue.resolved and (now - issue.detected_at) > max_age_seconds:
+                issue.resolved = True
+                issue.resolved_at = now
+                resolved_count += 1
+        # Cap stored issues to prevent unbounded growth
+        if len(self.issues) > 500:
+            self.issues = [i for i in self.issues if not i.resolved][-500:]
+        return resolved_count
+
     def get_health_report(self) -> dict[str, Any]:
         """Generate a comprehensive health report."""
-        open_issues = [i for i in self.issues if not getattr(i, "resolved", False)]
+        open_issues = [i for i in self.issues if not i.resolved]
         critical = [i for i in open_issues if i.severity == "critical"]
         high = [i for i in open_issues if i.severity == "high"]
 

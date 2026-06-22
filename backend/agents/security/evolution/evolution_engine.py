@@ -384,7 +384,7 @@ class EvolutionEngine:
 
             # Calculate improvement rate from history
             if len(self.performance_history) >= 2:
-                prev = self.performance_history[-2].get("metrics", {})
+                prev = self.performance_history[-1].get("metrics", {})
                 curr = self.metrics
                 changes = []
                 for key in ["detection_rate", "vuln_precision", "exploit_success"]:
