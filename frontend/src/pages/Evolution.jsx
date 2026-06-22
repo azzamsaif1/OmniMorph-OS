@@ -307,7 +307,7 @@ export default function Evolution() {
             ["Prioritization", "10K vulns unclassified", "Risk-scored + prioritized"],
             ["Autonomy", "Requires initial access", "Fully autonomous reconnaissance"],
           ].map(([domain, mythos, omni], i) => (
-            <React.Fragment key={domain}>
+            <div key={domain} style={{ display: "contents" }}>
               <div style={{ padding: "6px 8px", color: "#cdd6f4", background: i % 2 ? "#11111b" : "transparent", borderRadius: "4px" }}>
                 {domain}
               </div>
@@ -317,7 +317,7 @@ export default function Evolution() {
               <div style={{ padding: "6px 8px", color: "#a6e3a1", background: i % 2 ? "#11111b" : "transparent", borderRadius: "4px" }}>
                 {omni}
               </div>
-            </React.Fragment>
+            </div>
           ))}
         </div>
       </div>
