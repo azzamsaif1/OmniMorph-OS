@@ -221,7 +221,26 @@ class EvolutionEngine:
 
         # Correlate with full CVE database
         correlation = correlate_scan(recon)
-        risk = calculate_risk_score(recon)
+
+        # Calculate risk from discovered vulnerabilities
+        critical_count = sum(
+            1 for sv in all_vulns
+            for v in sv.get("vulnerabilities", [])
+            if v.get("cvss_score", 0) >= 9.0
+        )
+        high_count = sum(
+            1 for sv in all_vulns
+            for v in sv.get("vulnerabilities", [])
+            if 7.0 <= v.get("cvss_score", 0) < 9.0
+        )
+        medium_count = sum(
+            1 for sv in all_vulns
+            for v in sv.get("vulnerabilities", [])
+            if 4.0 <= v.get("cvss_score", 0) < 7.0
+        )
+        risk = calculate_risk_score(
+            len(recon.get("ports", [])), critical_count, high_count, medium_count
+        )
 
         return {
             "service_analysis": all_vulns,
