@@ -4,7 +4,7 @@ Phase 3.2 expansion: ALAS-style self-learning system.
 """
 
 from fastapi import APIRouter
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 router = APIRouter(prefix="/api/training-ops", tags=["training-ops"])
 
@@ -23,7 +23,7 @@ class TrainingDataRequest(BaseModel):
 
 class TrainRequest(BaseModel):
     agent_type: str
-    training_data: list[dict] = []
+    training_data: list[dict] = Field(default_factory=list)
     base_model: str = "llama-3-8b"
 
 

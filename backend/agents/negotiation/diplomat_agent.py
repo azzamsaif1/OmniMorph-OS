@@ -6,6 +6,7 @@ Target: 90% agreement rate in contract negotiations.
 
 import time
 from typing import Any
+from uuid import uuid4
 
 from backend.gemini_client import generate_content
 
@@ -30,7 +31,7 @@ class DiplomatAgent:
         self, parties: list[str], topic: str, constraints: dict | None = None
     ) -> dict[str, Any]:
         """Initialize a new negotiation session."""
-        session_id = f"neg_{int(time.time())}_{len(self.active_sessions)}"
+        session_id = f"neg_{uuid4().hex[:12]}"
 
         prompt = (
             f"You are a skilled negotiator. Analyze this negotiation setup:\n\n"

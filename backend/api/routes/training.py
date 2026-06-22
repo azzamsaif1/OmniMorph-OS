@@ -211,7 +211,7 @@ async def list_domains() -> dict[str, Any]:
         "domains": {
             domain: {
                 "scenario_count": len(templates),
-                "difficulties": list({t["difficulty"] for t in templates}),
+                "difficulties": sorted({t["difficulty"] for t in templates}),
             }
             for domain, templates in _SCENARIO_TEMPLATES.items()
         }
