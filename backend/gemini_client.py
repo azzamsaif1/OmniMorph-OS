@@ -180,3 +180,9 @@ async def gemini_guidance(
         prompt += "\nProvide a contextual suggestion."
 
     return await gemini_generate(prompt, system_instruction=system, temperature=0.5, max_tokens=256)
+
+
+# Alias for agent expansion modules
+async def generate_content(prompt: str, temperature: float = 0.7) -> str:
+    """Convenience alias used by expansion agents."""
+    return await gemini_generate(prompt, temperature=temperature)
