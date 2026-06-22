@@ -1,6 +1,6 @@
 ---
 name: testing-ucsk
-description: End-to-end testing procedure for the UCSK (Unified Cognitive Singularity Kernel) scaffold. Use when verifying backend API, WebSocket guidance, agent orchestration, or frontend UI adaptation.
+description: End-to-end testing procedure for the UCSK (Unified Cognitive Singularity Kernel) scaffold. Use when verifying backend API, WebSocket guidance, agent orchestration, frontend UI adaptation, evolution engine, or monitoring system.
 ---
 
 # Testing UCSK
@@ -58,7 +58,7 @@ The backend will log `ucsk.db_init_skipped` on startup if PostgreSQL is not avai
 | Endpoint | Method | Purpose | Expected Response |
 |----------|--------|---------|-------------------|
 | `/health` | GET | Health check | `{"status":"ok","service":"UCSK"}` |
-| `/api/system/info` | GET | System architecture | 6 layers, 40+ agents, 5 UI modes, 20 features |
+| `/api/system/info` | GET | System architecture | 6 layers, 40+ agents, 5 UI modes, 24+ features |
 | `/api/sensing/behavior` | POST | Record events | Accepts keystroke/mouse/scroll/click |
 | `/api/sensing/state` | GET | Mental state | `{state, confidence, focus, fatigue, ...}` |
 | `/api/agents/run` | POST | Run orchestrator | `messages` array from supervisors + specialists |
@@ -110,6 +110,96 @@ The backend will log `ucsk.db_init_skipped` on startup if PostgreSQL is not avai
 | `/api/delivery/pipeline` | POST | Pipeline execution | `{results: [...], total_time, success_rate}` |
 | `/api/delivery/git/status` | GET | Git status | `{branch, modified_files, files, clean}` |
 | `/api/delivery/docker/containers` | GET | Docker containers | `{containers: [...], total}` |
+
+### Evolution Engine Endpoints (Self-Evolving Pentest)
+
+| Endpoint | Method | Purpose | Expected Response |
+|----------|--------|---------|-------------------|
+| `/api/evolution/dashboard` | GET | Evolution status | `{total_assessments, strategies_count: 6, experience_count, generation}` |
+| `/api/evolution/strategies` | GET | All strategies | Array of 6 strategies with `name, success_rate, phases, generation, bypasses` |
+| `/api/evolution/memory` | GET | Experience memory | `{stats: {total_experiences, patterns_identified, ...}, recent_experiences}` |
+| `/api/evolution/metrics` | GET | Performance metrics | `{detection_rate, vuln_precision, exploit_success, true_positive_rate}` with targets |
+| `/api/evolution/assess` | POST | Run assessment | `{target_ip, recon, vulnerabilities, exploits, report, duration_ms, experience_id}` |
+| `/api/evolution/predict` | POST | Predict success | `{predicted_success: 0-1, recommendation, bypasses_available}` |
+| `/api/evolution/experience` | POST | Record experience | `{experience_id, learning_updates: {strategy_updates, defense_adaptations}}` |
+| `/api/evolution/evolve` | POST | Evolve strategies | `{generation, mutations_applied, strategies_evolved}` |
+
+### Monitoring Endpoints (Real-Time Observability)
+
+| Endpoint | Method | Purpose | Expected Response |
+|----------|--------|---------|-------------------|
+| `/api/monitoring/dashboard` | GET | Full dashboard | `{status, total_agents: 39, domains, health, events}` |
+| `/api/monitoring/health` | GET | All agent health | Object with 39 agent entries, each with `status, requests, error_rate` |
+| `/api/monitoring/health/{agent_id}` | GET | Single agent | `{agent_id, status, total_requests, avg_response_ms}` |
+| `/api/monitoring/domains` | GET | Domain health | 9 domains: core(6), security(6), finance(3), software(10), research(3), business(2), negotiation(2), delivery(4), training(3) |
+| `/api/monitoring/performance/report` | GET | Health report | `{overall_health, open_issues, issues: [{severity, category, metric}]}` |
+| `/api/monitoring/performance/trends` | GET | Metric trends | `{trends: [{metric, direction, change_pct}]}` |
+| `/api/monitoring/performance/recommendations` | GET | Improvements | `{recommendations: [{domain, metric, priority, action}]}` |
+| `/api/monitoring/metrics` | POST | Record metric | `{recorded: true, metric, value, agent}` |
+| `/api/monitoring/events` | GET | Event timeline | `{events: [{timestamp, type, source, message}]}` |
+| `/api/monitoring/healing/run` | POST | Run self-heal | `{actions_taken, applied, events}` |
+| `/api/monitoring/healing/params` | GET | Tunable params | 10 params with `name, current, min, max` |
+| `/api/monitoring/healing/rollback/{action_id}` | POST | Rollback action | `{rolled_back, param, old_value, new_value}` |
+| `/api/monitoring/resources` | GET | Resource usage | `{cpu_percent, memory_mb, threads}` |
+
+## Testing Evolution Engine (curl examples)
+
+### Record Experience + Verify Learning
+```bash
+# Record a success
+curl -s -X POST http://localhost:8000/api/evolution/experience \
+  -H 'Content-Type: application/json' \
+  -d '{"target_type":"network","technique":"port_scan","outcome":"success","confidence":0.92,"defenses_encountered":["firewall"],"bypass_used":"syn_scan","tactics":["stealth","timing"]}'
+
+# Record a failure
+curl -s -X POST http://localhost:8000/api/evolution/experience \
+  -H 'Content-Type: application/json' \
+  -d '{"target_type":"service","technique":"sql_injection","outcome":"failure","confidence":0.3,"defenses_encountered":["waf","ips"],"bypass_used":"","tactics":["obfuscation"]}'
+```
+**Critical assertions:** Response includes `experience_id` (non-empty string) and `learning_updates.strategy_updates` array. Success experiences should show `success_rate > 0` for updated strategies.
+
+### Run Autonomous Assessment
+```bash
+curl -s -X POST http://localhost:8000/api/evolution/assess \
+  -H 'Content-Type: application/json' \
+  -d '{"target_ip":"127.0.0.1","depth":"standard"}'
+```
+**Critical assertions:** Response includes `recon.ports` (at least 1 port on localhost — SSH:22 is common), `report.executive_summary` mentioning "127.0.0.1", `duration_ms > 0`, `experience_id` non-empty.
+
+### Predict Attack Success
+```bash
+curl -s -X POST http://localhost:8000/api/evolution/predict \
+  -H 'Content-Type: application/json' \
+  -d '{"target_type":"network","technique":"port_scan","defenses":["firewall"]}'
+```
+**Critical assertions:** `predicted_success` between 0.0-1.0, `recommendation` is one of "proceed"/"explore"/"caution"/"avoid", `bypasses_available` may include learned firewall bypasses.
+
+## Testing Monitoring System (curl examples)
+
+### Anomaly Detection Flow
+```bash
+# Record 6 normal metrics
+for v in 0.91 0.93 0.90 0.94 0.92 0.95; do
+  curl -s -X POST http://localhost:8000/api/monitoring/metrics \
+    -H 'Content-Type: application/json' \
+    -d "{\"name\":\"detection_rate\",\"value\":$v,\"agent\":\"security\"}"
+done
+
+# Record 1 anomalous metric
+curl -s -X POST http://localhost:8000/api/monitoring/metrics \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"detection_rate","value":0.1,"agent":"security"}'
+
+# Check health report
+curl -s http://localhost:8000/api/monitoring/performance/report
+```
+**Critical assertions:** After anomalous value, `open_issues >= 1`, issue has `severity` of "medium" or "high", `description` mentions "Anomalous" and z-score.
+
+### Self-Healing Cycle
+```bash
+curl -s -X POST http://localhost:8000/api/monitoring/healing/run
+```
+**Critical assertions:** Response includes `actions_taken >= 0`. If an anomaly was detected, the healer may auto-tune parameters (check `security.scan_timeout_ms` changes from default 5000). Events array should include "Healing cycle initiated" and "Healing cycle complete".
 
 ## Testing Agent Expansion (curl examples)
 
@@ -185,12 +275,12 @@ Expect: `messages` array with entries from all supervisors (analysis, interface,
 
 ## Frontend Pages to Test
 
-All 11 pages are accessible via the NavBar at the top of the app:
+All 13 pages are accessible via the NavBar at the top of the app:
 
 | Route | Page | What to Verify |
 |-------|------|----------------|
 | `/` | Workspace | Monaco editor, Agent Suggestions panel, Focus/Fatigue/Engagement bars |
-| `/dashboard` | Cognitive Dashboard | 4 metric cards (Mental State, Confidence, UI Mode, Capability Index), 5 capability dimension bars, 6 architecture layers, 20 features |
+| `/dashboard` | Cognitive Dashboard | 4 metric cards (Mental State, Confidence, UI Mode, Capability Index), 5 capability dimension bars, 6 architecture layers, 20+ features |
 | `/training` | Training Scenarios | Domain selector (6 options), difficulty selector (4 levels), Generate Scenario button produces a scenario card with title, badges, objectives |
 | `/compete` | Competitive Twin | Your Record (5 stats: Wins, Twin Wins, Ties, Win Rate, Streak), Challenge Arena with New Challenge button |
 | `/twin` | Digital Twin | Skill Fingerprint (Sessions, Patterns, Learning Velocity, Decision Style), Behavioral Prediction, Capture Activity + Export Digital Soul buttons |
@@ -200,6 +290,33 @@ All 11 pages are accessible via the NavBar at the top of the app:
 | `/governance` | Governance & Ethics | Privacy budget (epsilon remaining/spent/status), Ethical Constitution (8 rules with severity), Audit Trail |
 | `/billing` | Billing | Current Plan badge, 3 plan cards (Free $0, Pro $49, Enterprise $199) with features, Revenue Summary (MRR + Active Subs) |
 | `/settings` | Settings | 4 consent toggles (Camera, Microphone, Keyboard/Mouse, Skill Sharing), Learned Preferences table |
+| `/evolution` | Evolution | 4 metric cards (Assessments, Vulns, Exploits, Evolution Gen), Autonomous Assessment runner, Attack Strategies (6), Experience Memory, OmniMorph-OS vs Mythos table (8 rows) |
+| `/monitoring` | System Monitoring | HEALTHY status, 39 Total Agents, 9 Domain Health entries, Performance Issues, Self-Healing Engine with tunable params, Event Timeline |
+
+## Testing Evolution Frontend
+
+1. Navigate to `/evolution`
+2. Verify page title "Self-Evolving Penetration Testing"
+3. Check 4 metric cards display values
+4. Verify "Attack Strategies (6)" lists all strategies with success rates
+5. Type "127.0.0.1" in target IP field, click "Run Assessment"
+6. Verify "Assessment Complete" box appears with duration and port count
+7. Check Experience Memory updates after assessment
+8. Scroll down to verify OmniMorph-OS vs Claude Mythos comparison table (8 rows)
+
+**Important:** The comparison table dynamically shows current experience count (e.g., "Continuous (4 experiences) vs static"). This proves live data binding.
+
+## Testing Monitoring Frontend
+
+1. Navigate to `/monitoring`
+2. Verify "HEALTHY" system status and "39" Total Agents
+3. Check Domain Health lists 9 domains with correct agent counts
+4. Verify Tunable Parameters show values with (min-max) ranges
+5. Click "Run Self-Heal" — should complete quickly
+6. Verify Event Timeline shows healing events
+7. Check if any Performance Issues are displayed (if anomalies were recorded)
+
+**Important:** The self-healer may auto-tune `security.scan_timeout_ms` if it detects performance anomalies. After running self-heal, check if this value changed from default 5000.
 
 ## Frontend UI Modes
 
@@ -225,6 +342,9 @@ Mode switching has a 2000ms cooldown (hysteresis) to prevent flickering.
 - **Trading signals require 50+ prices:** For meaningful technical analysis, provide at least 50 data points (needed for SMA50). Fewer than 26 data points will produce incomplete EMA/MACD calculations.
 - **Security assessment does REAL TCP scanning:** The `/api/security/assessment` endpoint performs actual network connections. Only test against localhost or owned infrastructure.
 - **Gemini fallback:** When `GOOGLE_API_KEY` is not set, agents using Gemini (negotiation, research evolution, software code generation) return placeholder responses. The endpoints still return 200 with valid structure — they don't error out.
+- **Evolution page React.Fragment:** Previously used `React.Fragment` without importing React (caused blank page). Fixed by using `<div style={{display:"contents"}}>` instead. If you see a blank Evolution page, check browser console for "React is not defined" — this indicates the fix may have been reverted.
+- **Evolution state is in-memory:** All evolution data (experiences, strategies, assessments) is stored in memory and resets on backend restart. To test from a fresh state, restart the backend.
+- **Anomaly detection requires 5+ data points:** The z-score calculation needs at least 5 data points for a meaningful standard deviation. Fewer than 5 points won't trigger anomaly detection even for extreme values.
 
 ## Devin Secrets Needed
 
