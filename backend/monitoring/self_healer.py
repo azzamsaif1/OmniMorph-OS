@@ -223,6 +223,18 @@ class SelfHealer:
 
         return results
 
+    # Map metric names to tunable parameter keys
+    _metric_to_param = {
+        "detection_rate": "security.scan_timeout_ms",
+        "vuln_precision": "security.cve_match_threshold",
+        "exploit_success": "security.exploit_timeout_ms",
+        "signal_accuracy": "finance.signal_lookback_periods",
+        "risk_reduction": "finance.risk_tolerance",
+        "code_quality_score": "software.review_depth",
+        "papers_per_day": "research.scan_batch_size",
+        "consensus_rate": "negotiation.max_rounds",
+    }
+
     def _generate_healing_action(self, issue: dict) -> HealingAction | None:
         """Generate a healing action for a detected issue."""
         self._action_counter += 1
@@ -233,11 +245,12 @@ class SelfHealer:
 
         # Map issues to healing actions
         if category == "degradation":
+            param_key = self._metric_to_param.get(metric, metric)
             return HealingAction(
                 id=f"heal_{self._action_counter}",
                 action_type="optimize",
-                target=metric,
-                description=f"Auto-tune {metric} to improve performance",
+                target=param_key,
+                description=f"Auto-tune {param_key} to increase {metric}",
                 risk_level="low" if auto_fixable else "medium",
                 auto_approved=auto_fixable and severity != "critical",
             )
@@ -283,7 +296,7 @@ class SelfHealer:
             target=param_key,
             description=(
                 f"Tune {param_key} ({param['description']}) "
-                f"from {param['current']} to improve {metric}"
+                f"from {param['current']} — {direction} to improve {metric}"
             ),
             risk_level="low",
             auto_approved=gap < param.get("step", 1) * 2,
@@ -330,11 +343,11 @@ class SelfHealer:
             old_value = param["current"]
             step = param["step"]
 
-            # Determine direction
-            if "increase" in action.description or "improve" in action.description:
-                new_value = min(old_value + step, param["max"])
-            else:
+            # Determine direction from description
+            if "decrease" in action.description:
                 new_value = max(old_value - step, param["min"])
+            else:
+                new_value = min(old_value + step, param["max"])
 
             if new_value == old_value:
                 action.status = "rejected"
