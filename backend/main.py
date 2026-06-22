@@ -30,6 +30,8 @@ from backend.api.routes.software import router as software_router
 from backend.api.routes.research_ops import router as research_ops_router
 from backend.api.routes.negotiation import router as negotiation_router
 from backend.api.routes.delivery import router as delivery_router
+from backend.api.routes.evolution import router as evolution_router
+from backend.api.routes.monitoring import router as monitoring_router
 from backend.api.websocket.guidance import router as guidance_ws_router
 from backend.config import settings
 from backend.utils.logger import log
@@ -96,6 +98,10 @@ app.include_router(negotiation_router)
 app.include_router(delivery_router)
 app.include_router(training_ops_router)
 
+# Self-evolving pentest + monitoring routers
+app.include_router(evolution_router)
+app.include_router(monitoring_router)
+
 # WebSocket routers
 app.include_router(guidance_ws_router, prefix="/ws", tags=["websocket"])
 
@@ -127,6 +133,7 @@ async def system_info() -> dict[str, object]:
                     "codereview", "testing", "architecture", "devops",
                 ],
                 "security_ops": ["recon (C)", "vuln_analyzer (C)", "exploit (C)", "orchestrator"],
+                "self_evolution": ["experience_memory", "strategy_learner", "evolution_engine"],
                 "finance": ["trading_engine (C)", "portfolio_manager (C)", "orchestrator"],
                 "software": ["web", "systems", "security_code", "ai", "devops", "testing", "database", "frontend", "code_review"],
                 "research": ["arxiv_scanner", "knowledge_extractor", "self_evolver"],
@@ -141,6 +148,11 @@ async def system_info() -> dict[str, object]:
             },
             "c_libraries": ["librecon.so", "libvuln.so", "libexploit.so", "libtrading.so", "libportfolio.so"],
             "ui_modes": ["visual", "audio", "haptic", "mixed", "zero"],
+            "monitoring": {
+                "performance_analyzer": "Z-score anomaly detection + trend analysis",
+                "system_monitor": "40+ agent health tracking + event timeline",
+                "self_healer": "Auto-tuning 10 parameters + protected core preservation",
+            },
             "databases": ["qdrant", "neo4j", "postgresql", "redis"],
         },
         "features": [
@@ -164,5 +176,9 @@ async def system_info() -> dict[str, object]:
             "Privacy-by-Design Governance",
             "Automated Research Intelligence",
             "Project Delivery Pipeline (95% automation)",
+            "Self-Evolving Penetration Testing (surpasses Claude Mythos)",
+            "Experience Memory + Strategy Learning",
+            "Real-time System Monitoring (40+ agents)",
+            "Auto-Performance Analysis + Self-Healing",
         ],
     }

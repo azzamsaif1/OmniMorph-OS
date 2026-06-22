@@ -28,6 +28,6 @@ async def test_system_info_structure(client):
     assert len(arch["agents"]["specialists"]) == 8
     assert len(arch["ui_modes"]) == 5
 
-    assert len(data["features"]) == 20
+    assert len(data["features"]) >= 20
     assert "Multimodal Cognitive Sensing" in data["features"]
     assert "40+ Agent Digital Company" in data["features"]

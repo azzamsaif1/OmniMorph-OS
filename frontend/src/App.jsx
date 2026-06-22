@@ -13,6 +13,8 @@ import Compete from "./pages/Compete.jsx";
 import Billing from "./pages/Billing.jsx";
 import Settings from "./pages/Settings.jsx";
 import Governance from "./pages/Governance.jsx";
+import Evolution from "./pages/Evolution.jsx";
+import SystemMonitoring from "./pages/SystemMonitoring.jsx";
 
 const navStyle = {
   display: "flex",
@@ -79,6 +81,8 @@ function NavBar({ mentalState, uiMode }) {
           { to: "/governance", label: "Governance" },
           { to: "/billing", label: "Billing" },
           { to: "/settings", label: "Settings" },
+          { to: "/evolution", label: "Evolution" },
+          { to: "/monitoring", label: "Monitoring" },
         ].map(({ to, label }) => (
           <NavLink
             key={to}
@@ -136,6 +140,8 @@ function AppContent() {
         <Route path="/governance" element={<Governance />} />
         <Route path="/billing" element={<Billing />} />
         <Route path="/settings" element={<Settings />} />
+        <Route path="/evolution" element={<Evolution />} />
+        <Route path="/monitoring" element={<SystemMonitoring />} />
       </Routes>
     </div>
   );
