@@ -63,7 +63,7 @@ class SecurityOrchestrator:
         for port_info in recon_results.get("ports", []):
             service = port_info.get("service", "unknown")
             port = port_info["port"]
-            banner = recon_results.get("banners", {}).get(str(port), "")
+            banner = recon_results.get("banners", {}).get(port, "")
 
             service_vulns = analyze_service(service, banner, port)
             if service_vulns.get("vulnerabilities_found", 0) > 0:

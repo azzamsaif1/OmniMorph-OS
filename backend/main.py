@@ -23,6 +23,7 @@ from backend.api.routes.preferences import router as preferences_router
 from backend.api.routes.research import router as research_router
 from backend.api.routes.sensing import router as sensing_router
 from backend.api.routes.training import router as training_router
+from backend.api.routes.training_ops import router as training_ops_router
 from backend.api.routes.security_ops import router as security_ops_router
 from backend.api.routes.finance import router as finance_router
 from backend.api.routes.software import router as software_router
@@ -93,6 +94,7 @@ app.include_router(software_router)
 app.include_router(research_ops_router)
 app.include_router(negotiation_router)
 app.include_router(delivery_router)
+app.include_router(training_ops_router)
 
 # WebSocket routers
 app.include_router(guidance_ws_router, prefix="/ws", tags=["websocket"])
