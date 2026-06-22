@@ -3,7 +3,14 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 
+from backend.agents.negotiation.diplomat_agent import DiplomatAgent
+from backend.agents.negotiation.contract_agent import ContractAgent
+
 router = APIRouter(prefix="/api/negotiation", tags=["negotiation"])
+
+# Module-level singletons so session state persists across requests
+_diplomat = DiplomatAgent()
+_contract = ContractAgent()
 
 
 class NegotiationStartRequest(BaseModel):
@@ -37,25 +44,19 @@ class ContractReviewRequest(BaseModel):
 @router.post("/start")
 async def start_negotiation(req: NegotiationStartRequest):
     """Initialize a new negotiation session."""
-    from backend.agents.negotiation.diplomat_agent import DiplomatAgent
-    agent = DiplomatAgent()
-    return await agent.start_negotiation(req.parties, req.topic, req.constraints)
+    return await _diplomat.start_negotiation(req.parties, req.topic, req.constraints)
 
 
 @router.post("/round")
 async def negotiation_round(req: NegotiationRoundRequest):
     """Execute one round of negotiation."""
-    from backend.agents.negotiation.diplomat_agent import DiplomatAgent
-    agent = DiplomatAgent()
-    return await agent.negotiate_round(req.session_id, req.proposals)
+    return await _diplomat.negotiate_round(req.session_id, req.proposals)
 
 
 @router.post("/resolve")
 async def resolve_conflict(req: ConflictRequest):
     """Resolve a conflict between two parties."""
-    from backend.agents.negotiation.diplomat_agent import DiplomatAgent
-    agent = DiplomatAgent()
-    return await agent.resolve_conflict(
+    return await _diplomat.resolve_conflict(
         req.party_a, req.position_a, req.party_b, req.position_b
     )
 
@@ -63,14 +64,10 @@ async def resolve_conflict(req: ConflictRequest):
 @router.post("/contract/draft")
 async def draft_contract(req: ContractRequest):
     """Draft a contract from specifications."""
-    from backend.agents.negotiation.contract_agent import ContractAgent
-    agent = ContractAgent()
-    return await agent.draft_contract(req.contract_type, req.parties, req.terms)
+    return await _contract.draft_contract(req.contract_type, req.parties, req.terms)
 
 
 @router.post("/contract/review")
 async def review_contract(req: ContractReviewRequest):
     """Review a contract for risks and issues."""
-    from backend.agents.negotiation.contract_agent import ContractAgent
-    agent = ContractAgent()
-    return await agent.review_contract(req.contract_text)
+    return await _contract.review_contract(req.contract_text)
