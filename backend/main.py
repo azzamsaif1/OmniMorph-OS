@@ -32,6 +32,7 @@ from backend.api.routes.negotiation import router as negotiation_router
 from backend.api.routes.delivery import router as delivery_router
 from backend.api.routes.evolution import router as evolution_router
 from backend.api.routes.monitoring import router as monitoring_router
+from backend.api.routes.glm import router as glm_router
 from backend.api.websocket.guidance import router as guidance_ws_router
 from backend.config import settings
 from backend.utils.logger import log
@@ -102,6 +103,9 @@ app.include_router(training_ops_router)
 app.include_router(evolution_router)
 app.include_router(monitoring_router)
 
+# GLM-5.1 integration (feature-flagged — works without GLM enabled)
+app.include_router(glm_router)
+
 # WebSocket routers
 app.include_router(guidance_ws_router, prefix="/ws", tags=["websocket"])
 
@@ -154,6 +158,17 @@ async def system_info() -> dict[str, object]:
                 "self_healer": "Auto-tuning 10 parameters + protected core preservation",
             },
             "databases": ["qdrant", "neo4j", "postgresql", "redis"],
+            "glm51_integration": {
+                "model": "GLM-5.1 (744B MoE, 256 experts, 8 active per token)",
+                "context_window": 202752,
+                "swe_bench_pro": "58.4% (world-leading)",
+                "autonomous_hours": 8,
+                "max_iterations": "655+ demonstrated",
+                "system_building": "Complete Linux Desktop in 8 hours",
+                "license": "MIT (full commercial use)",
+                "inference_backends": ["vLLM 0.19.0", "SGLang 0.5.10"],
+                "feature_flagged": True,
+            },
         },
         "features": [
             "Multimodal Cognitive Sensing",
@@ -180,5 +195,8 @@ async def system_info() -> dict[str, object]:
             "Experience Memory + Strategy Learning",
             "Real-time System Monitoring (40+ agents)",
             "Auto-Performance Analysis + Self-Healing",
+            "GLM-5.1 Integration (SWE-Bench Pro 58.4%, surpasses Claude Opus 4.6)",
+            "Self-Evolving Agent (655+ iterations, 6000+ tool calls)",
+            "System Genesis Engine (build complete systems in 8 hours)",
         ],
     }
