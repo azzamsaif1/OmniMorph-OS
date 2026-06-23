@@ -15,6 +15,7 @@ import Settings from "./pages/Settings.jsx";
 import Governance from "./pages/Governance.jsx";
 import Evolution from "./pages/Evolution.jsx";
 import SystemMonitoring from "./pages/SystemMonitoring.jsx";
+import GLM from "./pages/GLM.jsx";
 
 const navStyle = {
   display: "flex",
@@ -83,6 +84,7 @@ function NavBar({ mentalState, uiMode }) {
           { to: "/settings", label: "Settings" },
           { to: "/evolution", label: "Evolution" },
           { to: "/monitoring", label: "Monitoring" },
+          { to: "/glm", label: "GLM-5.1" },
         ].map(({ to, label }) => (
           <NavLink
             key={to}
@@ -142,6 +144,7 @@ function AppContent() {
         <Route path="/settings" element={<Settings />} />
         <Route path="/evolution" element={<Evolution />} />
         <Route path="/monitoring" element={<SystemMonitoring />} />
+        <Route path="/glm" element={<GLM />} />
       </Routes>
     </div>
   );
